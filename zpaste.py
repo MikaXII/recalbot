@@ -1,6 +1,6 @@
 from selenium import webdriver
 import time
-
+import settings
 
 class ZPaste:
 
@@ -10,7 +10,7 @@ class ZPaste:
         self._link = ""
 
         self.driver = webdriver.PhantomJS()
-        self.driver.get("http://0bin.fapyourmind.info/")
+        self.driver.get(settings.ZBIN)
         for value in dict.itervalues():
             self.driver.find_element_by_id('content').send_keys(value)
         self.driver.find_element_by_id("submit_form").click()
