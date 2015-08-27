@@ -1,12 +1,11 @@
 #!/usr/bin/env python2
-# -*- coding: utf8 -*-
+# -*- coding: utf-8 -*-
 
 import irclib
 import ircbot
 import settings
 import os
 from zpaste import ZPaste
-
 
 class Recalbot(ircbot.SingleServerIRCBot):
     def __init__(self):
@@ -20,14 +19,17 @@ class Recalbot(ircbot.SingleServerIRCBot):
     def on_pubmsg(self, serv, ev):
         self.auteur = irclib.nm_to_n(ev.source())
         self.canal = ev.target()
-        self.message = ev.arguments()[0]
+        self.message = ev.arguments()[0].decode('ascii', errors='replace')
         self.serv = serv
-        self.find_cmd_on_string(self.message)
+        if self.find_cmd_on_string(self.message) == False:
+            self.write_file("./histo","histo.txt",self.message)
 
     def find_cmd_on_string(self, string_with_cmd):
         for cmd in self.availableCmd:
             if cmd in string_with_cmd:
                 self.execute_cmd(cmd)
+                return True
+        return False
 
     def execute_cmd(self, cmd):
         if cmd == "!mega":
@@ -54,6 +56,8 @@ class Recalbot(ircbot.SingleServerIRCBot):
         a = ZPaste(info)
         self.serv.privmsg(self.auteur, a.link)
 
+    def write_file(self, folder, file, info):
+        print(folder, file, info)
 
 if __name__ == "__main__":
     Recalbot().start()
