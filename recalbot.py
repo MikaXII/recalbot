@@ -40,7 +40,7 @@ class Recalbot(ircbot.SingleServerIRCBot):
         elif cmd=="!wiki":
             self.read_all_file("./wiki")
       
-	 """
+        """
 
     def read_all_file(self, folder):
 
