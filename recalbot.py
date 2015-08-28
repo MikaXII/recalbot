@@ -15,7 +15,11 @@ class Recalbot(ircbot.SingleServerIRCBot):
         self.availableCmd = ["!mega", "!wiki", "!help","!histo"]
 
     def on_welcome(self, serv, ev):
-        serv.join("#test-recalbot")
+        serv.join(settings.CHAN)
+
+
+    def on_kick(self, serv, ev):
+        serv.join(settings.CHAN)
 
     def on_pubmsg(self, serv, ev):
         self.auteur = irclib.nm_to_n(ev.source())
@@ -23,7 +27,22 @@ class Recalbot(ircbot.SingleServerIRCBot):
         self.message = ev.arguments()[0].decode('utf-8', errors='replace')
         self.serv = serv
         if self.find_cmd_on_string(self.message) == False:
-            self.write_file("./histo","histo.txt",self.message)
+            info = self.auteur + ' ' + self.message + '\n'
+            self.write_file("./histo","histo.txt", info)
+
+    def on_privmsg(self, serv, ev):
+        self.auteur = irclib.nm_to_n(ev.source())
+        self.canal = ev.target()
+        self.message = ev.arguments()[0].decode('utf-8', errors='replace')
+        self.serv = serv
+        #self.serv.mode("#test-recalbot", "+o MikaXII")
+        self.find_cmd_on_string(self.message)
+        self.find_godmode_on_string(self.message)
+        """
+        if self.find_cmd_on_string(self.message) == False:
+            info = self.auteur + ' ' + self.message + '\n'
+            self.write_file("./histo","histo.txt", info)
+        """
 
     def find_cmd_on_string(self, string_with_cmd):
         for cmd in self.availableCmd:
@@ -32,10 +51,17 @@ class Recalbot(ircbot.SingleServerIRCBot):
                 return True
         return False
 
+    def find_godmode_on_string(self, string_with_cmd):
+        cmd = string_with_cmd.split(' ')
+        if(len(cmd) > 1):
+            if settings.GOD in cmd:
+                self.serv.kick(settings.CHAN,cmd[1],self.auteur + " activate god mode")
+                return True
+        return False
+
     def execute_cmd(self, cmd):
         if cmd == "!mega":
             self.read_all_file("./mega")
-        
         elif cmd=="!histo":
             self.read_all_file("./histo")
         """
@@ -60,8 +86,16 @@ class Recalbot(ircbot.SingleServerIRCBot):
         self.serv.privmsg(self.auteur, a.link)
 
     def write_file(self, folder, file, info):
-        #with open(folder+'/'+file, 'r' as fin:
-            #data = fi
+        with codecs.open(folder+'/'+file, 'r','utf-8',errors="replace") as fin:
+            data = fin.read().splitlines(True)
+        if len(data) >= 500:
+            with codecs.open(folder+'/'+file, 'w', 'utf-8',errors="replace") as fout:
+                fout.writelines(data[1:])
+                fout.writelines(info)
+        else:
+            with codecs.open(folder+'/'+file, 'w', 'utf-8',errors="replace") as fout:
+                fout.writelines(data)
+                fout.writelines(info)
         print(folder, file, info)
 
 if __name__ == "__main__":
