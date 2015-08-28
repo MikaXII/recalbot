@@ -11,12 +11,14 @@ class ZPaste:
 
         self.driver = webdriver.PhantomJS()
         self.driver.get(settings.ZBIN)
+        print "Prout"
         for value in dict.itervalues():
             self.driver.find_element_by_id('content').send_keys(value)
+            print "j'enmerde python"
         self.driver.find_element_by_id("submit_form").click()
 
         while self.driver.current_url.find('paste') == -1:
-            # print "Processing...Please wait..."
+            print "Processing...Please wait..."
             # print driver.current_url
             time.sleep(1)
 
