@@ -13,7 +13,7 @@ class Recalbot(ircbot.SingleServerIRCBot):
     def __init__(self):
         ircbot.SingleServerIRCBot.__init__(self, [(settings.SRV, settings.PORT, settings.PWD)], settings.NAME,
                                            settings.DESC)
-        self.availableCmd = ["!mega", "!wiki", "!help","!histo"]
+        self.availableCmd = ["!mega", "!wiki", "!help","!histo","!op"]
 
     def on_welcome(self, serv, ev):
         serv.join(settings.CHAN)
@@ -27,9 +27,9 @@ class Recalbot(ircbot.SingleServerIRCBot):
         self.canal = ev.target()
         self.message = ev.arguments()[0].decode('utf-8', errors='replace')
         self.serv = serv
-        if self.find_cmd_on_string(self.message) == False:
-            info = '<'+time.strftime('%H:%M',time.localtime()) +"> "+self.auteur + ' : ' + self.message + '\n'
-            self.write_file("/usr/share/webapps/histo","histo.txt", info)
+        self.find_cmd_on_string(self.message)
+        info = '<'+time.strftime('%H:%M',time.localtime()) +"> "+self.auteur + ' : ' + self.message + '\n'
+        self.write_file("/usr/share/webapps/histo","histo.txt", info)
 
     def on_privmsg(self, serv, ev):
         self.auteur = irclib.nm_to_n(ev.source())
@@ -39,12 +39,7 @@ class Recalbot(ircbot.SingleServerIRCBot):
         #self.serv.mode("#test-recalbot", "+o MikaXII")
         self.find_cmd_on_string(self.message)
         self.find_godmode_on_string(self.message)
-        """
-        if self.find_cmd_on_string(self.message) == False:
-            info = self.auteur + ' ' + self.message + '\n'
-            self.write_file("./histo","histo.txt", info)
-        """
-
+        
     def find_cmd_on_string(self, string_with_cmd):
         for cmd in self.availableCmd:
             if cmd in string_with_cmd:
@@ -69,8 +64,10 @@ class Recalbot(ircbot.SingleServerIRCBot):
             self.read_all_file("./wiki")
         elif cmd == "!help":
             self.serv.privmsg(self.auteur, "If you want mega link say !mega, wiki pages say !wiki, channel history say !histo")
-
-
+        elif cmd == "!op":
+            for user in settings.OP:
+                if user in self.auteur:
+                    self.serv.mode("#recalbox", "+o "+self.auteur)
 
     def read_all_file(self, folder):
 
