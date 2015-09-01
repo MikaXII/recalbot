@@ -7,6 +7,7 @@ import settings
 import os
 import codecs
 from zpaste import ZPaste
+import time
 
 class Recalbot(ircbot.SingleServerIRCBot):
     def __init__(self):
@@ -27,8 +28,8 @@ class Recalbot(ircbot.SingleServerIRCBot):
         self.message = ev.arguments()[0].decode('utf-8', errors='replace')
         self.serv = serv
         if self.find_cmd_on_string(self.message) == False:
-            info = self.auteur + ' ' + self.message + '\n'
-            self.write_file("./histo","histo.txt", info)
+            info = '<'+time.strftime('%H:%M',time.localtime()) +"> "+self.auteur + ' : ' + self.message + '\n'
+            self.write_file("/usr/share/webapps/histo","histo.txt", info)
 
     def on_privmsg(self, serv, ev):
         self.auteur = irclib.nm_to_n(ev.source())
@@ -63,12 +64,13 @@ class Recalbot(ircbot.SingleServerIRCBot):
         if cmd == "!mega":
             self.read_all_file("./mega")
         elif cmd=="!histo":
-            self.read_all_file("./histo")
-        """
+            self.serv.privmsg(self.auteur, settings.HISTO)
         elif cmd=="!wiki":
             self.read_all_file("./wiki")
-      
-        """
+        elif cmd == "!help":
+            self.serv.privmsg(self.auteur, "If you want mega link say !mega, wiki pages say !wiki, channel history say !histo")
+
+
 
     def read_all_file(self, folder):
 
@@ -88,7 +90,7 @@ class Recalbot(ircbot.SingleServerIRCBot):
     def write_file(self, folder, file, info):
         with codecs.open(folder+'/'+file, 'r','utf-8',errors="replace") as fin:
             data = fin.read().splitlines(True)
-        if len(data) >= 500:
+        if len(data) >= 5000:
             with codecs.open(folder+'/'+file, 'w', 'utf-8',errors="replace") as fout:
                 fout.writelines(data[1:])
                 fout.writelines(info)
@@ -96,7 +98,6 @@ class Recalbot(ircbot.SingleServerIRCBot):
             with codecs.open(folder+'/'+file, 'w', 'utf-8',errors="replace") as fout:
                 fout.writelines(data)
                 fout.writelines(info)
-        print(folder, file, info)
 
 if __name__ == "__main__":
     Recalbot().start()
