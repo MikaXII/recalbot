@@ -23,13 +23,16 @@ class ZPaste:
         # print driver.current_url
         self._link = self.driver.current_url
         self.driver.quit()
-
+        del self.driver
 
     def _get_is_paste(self):
         return self._isPaste
 
     def _get_link(self):
         return self._link
+
+    def __del__(self):
+        print "del",self
 
     isPaste = property(_get_is_paste)
     link = property(_get_link)

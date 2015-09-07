@@ -7,13 +7,15 @@ import settings
 import os
 import codecs
 from zpaste import ZPaste
-import time
+import time, threading
 
 class Recalbot(ircbot.SingleServerIRCBot):
     def __init__(self):
         ircbot.SingleServerIRCBot.__init__(self, [(settings.SRV, settings.PORT, settings.PWD)], settings.NAME,
                                            settings.DESC)
         self.availableCmd = ["!mega", "!wiki", "!help","!histo","!op"]
+        self.megaLink = ""
+        self.wikiLink = ""
 
     def on_welcome(self, serv, ev):
         serv.join(settings.CHAN)
@@ -21,6 +23,7 @@ class Recalbot(ircbot.SingleServerIRCBot):
 
     def on_kick(self, serv, ev):
         serv.join(settings.CHAN)
+        #serv.action(settings.CHAN, "se sent bien ici")
 
     def on_pubmsg(self, serv, ev):
         self.auteur = irclib.nm_to_n(ev.source())
@@ -46,6 +49,14 @@ class Recalbot(ircbot.SingleServerIRCBot):
                 self.execute_cmd(cmd)
                 return True
         return False
+    
+    def on_join(self,serv,ev):
+        self.auteur = irclib.nm_to_n(ev.source())
+        self.canal = ev.target()
+        self.serv = serv
+        for user in settings.OP:
+            if user in self.auteur:
+                self.serv.mode("#recalbox", "+o "+self.auteur)
 
     def find_godmode_on_string(self, string_with_cmd):
         cmd = string_with_cmd.split(' ')
@@ -57,11 +68,11 @@ class Recalbot(ircbot.SingleServerIRCBot):
 
     def execute_cmd(self, cmd):
         if cmd == "!mega":
-            self.read_all_file("./mega")
+            self.read_file("./links/mega.txt")
         elif cmd=="!histo":
             self.serv.privmsg(self.auteur, settings.HISTO)
         elif cmd=="!wiki":
-            self.read_all_file("./wiki")
+            self.read_file("./links/wiki.txt")
         elif cmd == "!help":
             self.serv.privmsg(self.auteur, "If you want mega link say !mega, wiki pages say !wiki, channel history say !histo")
         elif cmd == "!op":
@@ -78,12 +89,19 @@ class Recalbot(ircbot.SingleServerIRCBot):
                 with codecs.open(dir_entry_path, 'r', encoding='utf8') as my_file:
                     data[dir_entry] = my_file.read()
         self.paste_info(data);
+    
+    def read_file(self,fileToRead):
+        data = ""
+        with codecs.open(fileToRead, 'r', encoding='utf8') as my_file:
+            data = my_file.read()
+        self.serv.privmsg(self.auteur,data)
 
     def paste_info(self, info):
         self.serv.privmsg(self.auteur, "Please wait I'm working for you :*")
         a = ZPaste(info)
         self.serv.privmsg(self.auteur, a.link)
-
+        del a
+        
     def write_file(self, folder, file, info):
         with codecs.open(folder+'/'+file, 'r','utf-8',errors="replace") as fin:
             data = fin.read().splitlines(True)
@@ -95,6 +113,9 @@ class Recalbot(ircbot.SingleServerIRCBot):
             with codecs.open(folder+'/'+file, 'w', 'utf-8',errors="replace") as fout:
                 fout.writelines(data)
                 fout.writelines(info)
+
+    def periodicPast(self):
+        a = ZPaste
 
 if __name__ == "__main__":
     Recalbot().start()
