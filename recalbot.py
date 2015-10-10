@@ -33,7 +33,7 @@ class Recalbot(ircbot.SingleServerIRCBot):
         self.find_cmd_on_string(self.message)
         info = '<'+time.strftime('%H:%M',time.localtime()) +"> "+self.auteur + ' : ' + self.message + '\n'
         self.write_file("/usr/share/webapps/histo","histo.txt", info)
-
+        
     def on_privmsg(self, serv, ev):
         self.auteur = irclib.nm_to_n(ev.source())
         self.canal = ev.target()
