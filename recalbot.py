@@ -32,7 +32,7 @@ class Recalbot(ircbot.SingleServerIRCBot):
         self.serv = serv
         self.find_cmd_on_string(self.message)
         info = '<'+time.strftime('%H:%M',time.localtime()) +"> "+self.auteur + ' : ' + self.message + '\n'
-        self.write_file("/usr/share/webapps/histo","histo.txt", info)
+        self.write_file(settings.HISTOF,"histo.txt", info)
         
     def on_privmsg(self, serv, ev):
         self.auteur = irclib.nm_to_n(ev.source())
@@ -55,7 +55,7 @@ class Recalbot(ircbot.SingleServerIRCBot):
         self.canal = ev.target()
         self.serv = serv
         for user in settings.OP:
-            if user in self.auteur:
+            if user == self.auteur:
                 self.serv.mode("#recalbox", "+o "+self.auteur)
 
     def find_godmode_on_string(self, string_with_cmd):
